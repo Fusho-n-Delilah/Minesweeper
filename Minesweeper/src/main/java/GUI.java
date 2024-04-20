@@ -11,13 +11,12 @@ public class GUI implements ActionListener {
     private ArrayList<Cell> cells = new ArrayList<>();
     private JPanel board;
     private JPanel controls;
-    private enum Difficulty {EASY,INTERMEDIATE,EXPERT};
     private Difficulty difficulty;
     private int numOfCells;
     private int numOfFlags;
-    private final ImageIcon smiley = new ImageIcon("smiley.png");
-    private final ImageIcon smiley_dead = new ImageIcon("smiley_dead.png");
-    private final ImageIcon smiley_melted = new ImageIcon("smiley_melted.png");
+    private final ImageIcon smiley = new ImageIcon("src/main/resources/smiley.png");
+    private final ImageIcon smiley_dead = new ImageIcon("src/main/resources/smiley_dead.png");
+    private final ImageIcon smiley_melted = new ImageIcon("src/main/resources/smiley_melted.png");
 
     GUI(){
         init(Difficulty.EASY);
@@ -90,7 +89,6 @@ public class GUI implements ActionListener {
         this.board.setBackground(Color.LIGHT_GRAY);
         this.board.setBorder(new BevelBorder(BevelBorder.RAISED));
     }
-    //Method: create "JButton" Cells
     private void initializeCells(){
         int rows, cols;
         if(this.difficulty == Difficulty.EXPERT){
@@ -112,7 +110,6 @@ public class GUI implements ActionListener {
             }
         }
     }
-
     public void initializeControls(){
         /*
             Panel containing the controls of the gui
@@ -146,11 +143,32 @@ public class GUI implements ActionListener {
         timerDisplay.setForeground(Color.red);
         timerDisplay.setText("0");
 
-        JPanel centerControl = new JPanel(new GridLayout(1,3));
+        JPanel centerControl = new JPanel(new GridLayout(1,7));
         if(difficulty != Difficulty.EASY) {
-            centerControl.add(Box.createHorizontalGlue());
-            centerControl.add(resetButton);
-            centerControl.add(Box.createHorizontalGlue());
+            int i = 0;
+            if(difficulty == Difficulty.EXPERT) {
+                while (i<4){
+                    centerControl.add(Box.createHorizontalGlue());
+                    i++;
+                }
+                i=0;
+                centerControl.add(resetButton);
+                while (i<4){
+                    centerControl.add(Box.createHorizontalGlue());
+                    i++;
+                }
+            } else {
+                while (i<2){
+                    centerControl.add(Box.createHorizontalGlue());
+                    i++;
+                }
+                i=0;
+                centerControl.add(resetButton);
+                while (i<2){
+                    centerControl.add(Box.createHorizontalGlue());
+                    i++;
+                }
+            }
         } else {
             centerControl.add(resetButton);
         }
@@ -159,9 +177,6 @@ public class GUI implements ActionListener {
         controls.add(centerControl, BorderLayout.CENTER);
         controls.add(BorderLayout.EAST, timerDisplay);
     }
-
-    //Method:
-
     public static class Cell extends JButton {
         private final Point cell;
         Cell(){
