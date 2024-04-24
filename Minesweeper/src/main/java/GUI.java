@@ -10,6 +10,7 @@ public class GUI implements ActionListener {
     private Cell[][] cells;
     private JPanel board;
     private JPanel controls;
+    private JFrame game;
     private Difficulty difficulty;
     private int numOfCells;
     private int numOfFlags;
@@ -43,7 +44,6 @@ public class GUI implements ActionListener {
     GUI(Difficulty difficulty){
         //set difficulty
         this.difficulty = difficulty;
-
         switch (difficulty){
             case EASY -> {
                 this.numOfCells=9*9;
@@ -68,7 +68,7 @@ public class GUI implements ActionListener {
             }
         }
         //initialize Frame
-        JFrame game = new JFrame();
+        this.game = new JFrame();
         game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.setBackground(Color.lightGray);
 
@@ -82,6 +82,7 @@ public class GUI implements ActionListener {
         game.add(controls);
         game.add(this.board);
         game.pack();
+        game.setLocationRelativeTo(null);
         game.setLayout(new FlowLayout());
         switch (difficulty){
             case EASY -> game.setSize(235,325);
@@ -94,58 +95,61 @@ public class GUI implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        if (e.getSource().equals(resetButton)){
+            Minesweeper.GameEngine.handleClick("RESET");
+            this.game.dispose();
+        }
     }
     public void displayBoard(ViewBoard viewModel){
         if(viewModel.getGameState().equals("WON")){
-            displayWin(viewModel);
+            this.resetButton.setIcon(smiley_cool);
         } else if (viewModel.getGameState().equals("LOST")){
-            displayLose(viewModel);
-        } else {
-            int flags = 0;
-            for(int i = 0; i<maxY; i++){
-                for(int j = 0; j<maxX; j++) {
-                    String cellValue = viewModel.getValue(i,j);
-                    Cell cellButton = cells[i][j];
-                    if (viewModel.isFlagged(i, j)) {
-                        flags++;
-                        cellButton.setFlagged(!cells[i][j].getFlagged());
-                        cellButton.setEnabled(false);
-                        cellButton.setIcon(flag);
-                        cellButton.setDisabledIcon(flag);
+            this.resetButton.setIcon(smiley_dead);
+        }
+        int flags = 0;
+        for(int i = 0; i<maxY; i++){
+            for(int j = 0; j<maxX; j++) {
+                String cellValue = viewModel.getValue(i, j);
+                Cell cellButton = cells[i][j];
+                if (viewModel.isFlagged(i, j)) {
+                    flags++;
+                    cellButton.setFlagged(!cells[i][j].getFlagged());
+                    cellButton.setEnabled(false);
+                    cellButton.setIcon(flag);
+                    cellButton.setDisabledIcon(flag);
 
-                    } else if (cellValue.equals(" ") && viewModel.isRevealed(i,j)) {
-                        cellButton.setEnabled(false);
-                        cellButton.setIcon(numbers[0]);
-                        cellButton.setDisabledIcon(numbers[0]);
-                    } else if (cellValue.equals("M") && viewModel.isRevealed(i,j)){
-                        cellButton.setEnabled(false);
-                        cellButton.setBackground(Color.RED);
-                        cellButton.setIcon(mine);
-                        cellButton.setDisabledIcon(this.mine);
-                    } else if (!cellValue.equals(" ") && viewModel.isRevealed(i,j)) {
-                        int value = Integer.parseInt(viewModel.getValue(i,j));
-                        cellButton.setEnabled(false);
-                        cellButton.setHorizontalAlignment(SwingConstants.CENTER);
-                        cellButton.setIcon(numbers[value]);
-                        cellButton.setDisabledIcon(numbers[value]);
-                    } else {
-                        //should only be flagged cells
-                        cellButton.setIcon(null);
-                    }
+                } else if (cellValue.equals(" ") && viewModel.isRevealed(i, j)) {
+                    cellButton.setEnabled(false);
+                    cellButton.setIcon(numbers[0]);
+                    cellButton.setDisabledIcon(numbers[0]);
+                } else if (cellValue.equals("M") && viewModel.isRevealed(i, j)) {
+                    cellButton.setEnabled(false);
+                    cellButton.setBackground(Color.RED);
+                    cellButton.setIcon(mine);
+                    cellButton.setDisabledIcon(this.mine);
+                } else if (!cellValue.equals(" ") && viewModel.isRevealed(i, j)) {
+                    int value = Integer.parseInt(viewModel.getValue(i, j));
+                    cellButton.setEnabled(false);
+                    cellButton.setHorizontalAlignment(SwingConstants.CENTER);
+                    cellButton.setIcon(numbers[value]);
+                    cellButton.setDisabledIcon(numbers[value]);
+                } else {
+                    //should only be flagged cells
+                    cellButton.setIcon(null);
                 }
             }
-            flagsLeft.setText(String.valueOf((this.numOfFlags-flags)));
         }
+        flagsLeft.setText(String.valueOf((this.numOfFlags-flags)));
+
     }
 
-    private void displayLose(ViewBoard viewModel) {
-        this.resetButton.setIcon(smiley_dead);
-    }
-
-    private void displayWin(ViewBoard viewModel) {
-        this.resetButton.setIcon(smiley_cool);
-    }
+//    private void displayLose(ViewBoard viewModel) {
+//        this.resetButton.setIcon(smiley_dead);
+//    }
+//
+//    private void displayWin(ViewBoard viewModel) {
+//        this.resetButton.setIcon(smiley_cool);
+//    }
 
     private void initializeBoard(){
         switch (this.difficulty) {
@@ -208,10 +212,12 @@ public class GUI implements ActionListener {
         flagsLeft.setHorizontalAlignment(SwingConstants.RIGHT);
         flagsLeft.setBackground(new Color(43, 13, 13));
         flagsLeft.setForeground(Color.red);
+        flagsLeft.setFocusable(false);
         flagsLeft.setText(String.valueOf(numOfFlags));
         this.resetButton = new JButton(smiley);
         resetButton.setFocusPainted(false);
         resetButton.setPreferredSize(new Dimension(50,50));
+        resetButton.addActionListener(this);
         this.timerDisplay = new JTextField(3);
         timerDisplay.setFont(new Font("vt100",Font.PLAIN,27));
         timerDisplay.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -253,7 +259,7 @@ public class GUI implements ActionListener {
         controls.add(centerControl, BorderLayout.CENTER);
         controls.add(BorderLayout.EAST, timerDisplay);
     }
-        private void setNumbers() {
+    private void setNumbers() {
         this.numbers = new ImageIcon[9];
 
         this.numbers[0] = new ImageIcon("src/main/resources/numbers/0.png");
@@ -324,3 +330,4 @@ public class GUI implements ActionListener {
         }
     }
 }
+

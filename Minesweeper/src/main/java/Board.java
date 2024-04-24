@@ -112,6 +112,13 @@ public class Board{
         revealed++;
         this.board[y][x].setRevealed(true);
     }
+    public boolean isRevealed(int y, int x){
+        return this.board[y][x].isRevealed();
+    }
+    public int getRevealed() {
+        return revealed;
+    }
+
     private static int randNum(int maxVal){
         Random random = new Random();
         return random.nextInt(maxVal);
