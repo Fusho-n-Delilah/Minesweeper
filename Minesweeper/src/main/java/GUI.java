@@ -1,54 +1,79 @@
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.JPanel;
+import javax.swing.plaf.ButtonUI;
+import javax.swing.plaf.metal.MetalButtonUI;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.awt.event.*;
 
 public class GUI implements ActionListener {
-    private ArrayList<Cell> cells = new ArrayList<>();
+    private Cell[][] cells;
     private JPanel board;
     private JPanel controls;
     private Difficulty difficulty;
     private int numOfCells;
     private int numOfFlags;
+    private int maxX, maxY;
+    private JTextField flagsLeft;
+    private JTextField timerDisplay;
+    private JButton resetButton;
     private final ImageIcon smiley = new ImageIcon("src/main/resources/smiley.png");
     private final ImageIcon smiley_dead = new ImageIcon("src/main/resources/smiley_dead.png");
+    private final ImageIcon smiley_cool = new ImageIcon("src/main/resources/smiley_cool.png");
     private final ImageIcon smiley_melted = new ImageIcon("src/main/resources/smiley_melted.png");
+    private final ImageIcon flag = new ImageIcon("src/main/resources/flag.png");
+    private final ImageIcon mine = new ImageIcon("src/main/resources/mine.png");
+    private ImageIcon[] numbers;
 
-    GUI(){
-        init(Difficulty.EASY);
-    }
-    GUI(String difficulty){
-        switch (difficulty){
-            case "EASY" -> {
-                this.numOfCells=9*9;
-                this.numOfFlags = 10;
-                init(Difficulty.EASY);
-            }
-            case "INTERMEDIATE" -> {
-                this.numOfCells=16*16;
-                this.numOfFlags=40;
-                init(Difficulty.INTERMEDIATE);
-            }
-            case "EXPERT" -> {
-                this.numOfCells=30*16;
-                this.numOfFlags=99;
-                init(Difficulty.EXPERT);
-            }
-        }
-    }
-    private void init(Difficulty difficulty){
+
+
+    //    GUI(String difficulty){
+//        switch (difficulty){
+//            case "EASY" -> {
+//                init(Difficulty.EASY);
+//            }
+//            case "INTERMEDIATE" -> {
+//                init(Difficulty.INTERMEDIATE);
+//            }
+//            case "EXPERT" -> {
+//                init(Difficulty.EXPERT);
+//            }
+//        }
+//    }
+    GUI(Difficulty difficulty){
         //set difficulty
         this.difficulty = difficulty;
 
+        switch (difficulty){
+            case EASY -> {
+                this.numOfCells=9*9;
+                this.numOfFlags = 10;
+                this.maxX = 9;
+                this.maxY = 9;
+                this.cells = new Cell[9][9];
+            }
+            case INTERMEDIATE -> {
+                this.numOfCells=16*16;
+                this.numOfFlags=40;
+                this.maxX = 16;
+                this.maxY = 16;
+                this.cells = new Cell[16][16];
+            }
+            case EXPERT -> {
+                this.numOfCells=30*16;
+                this.numOfFlags=99;
+                this.maxX = 30;
+                this.maxY = 16;
+                this.cells = new Cell[16][30];
+            }
+        }
         //initialize Frame
         JFrame game = new JFrame();
         game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        game.setBackground(Color.lightGray);
 
         //create and initialize components
+        setNumbers();
         initializeControls();
         initializeBoard();
         initializeCells();
@@ -71,6 +96,57 @@ public class GUI implements ActionListener {
     public void actionPerformed(ActionEvent e) {
 
     }
+    public void displayBoard(ViewBoard viewModel){
+        if(viewModel.getGameState().equals("WON")){
+            displayWin(viewModel);
+        } else if (viewModel.getGameState().equals("LOST")){
+            displayLose(viewModel);
+        } else {
+            int flags = 0;
+            for(int i = 0; i<maxY; i++){
+                for(int j = 0; j<maxX; j++) {
+                    String cellValue = viewModel.getValue(i,j);
+                    Cell cellButton = cells[i][j];
+                    if (viewModel.isFlagged(i, j)) {
+                        flags++;
+                        cellButton.setFlagged(!cells[i][j].getFlagged());
+                        cellButton.setEnabled(false);
+                        cellButton.setIcon(flag);
+                        cellButton.setDisabledIcon(flag);
+
+                    } else if (cellValue.equals(" ") && viewModel.isRevealed(i,j)) {
+                        cellButton.setEnabled(false);
+                        cellButton.setIcon(numbers[0]);
+                        cellButton.setDisabledIcon(numbers[0]);
+                    } else if (cellValue.equals("M") && viewModel.isRevealed(i,j)){
+                        cellButton.setEnabled(false);
+                        cellButton.setBackground(Color.RED);
+                        cellButton.setIcon(mine);
+                        cellButton.setDisabledIcon(this.mine);
+                    } else if (!cellValue.equals(" ") && viewModel.isRevealed(i,j)) {
+                        int value = Integer.parseInt(viewModel.getValue(i,j));
+                        cellButton.setEnabled(false);
+                        cellButton.setHorizontalAlignment(SwingConstants.CENTER);
+                        cellButton.setIcon(numbers[value]);
+                        cellButton.setDisabledIcon(numbers[value]);
+                    } else {
+                        //should only be flagged cells
+                        cellButton.setIcon(null);
+                    }
+                }
+            }
+            flagsLeft.setText(String.valueOf((this.numOfFlags-flags)));
+        }
+    }
+
+    private void displayLose(ViewBoard viewModel) {
+        this.resetButton.setIcon(smiley_dead);
+    }
+
+    private void displayWin(ViewBoard viewModel) {
+        this.resetButton.setIcon(smiley_cool);
+    }
+
     private void initializeBoard(){
         switch (this.difficulty) {
             case EASY ->{
@@ -104,9 +180,9 @@ public class GUI implements ActionListener {
 
         for(int i = 0; i<rows; i++){
             for(int j = 0; j<cols; j++){
-                Cell cell = new Cell(i,j);
+                Cell cell = new Cell(j,i);
                 this.board.add(cell);
-                this.cells.add(cell);
+                this.cells[i][j] = cell;
             }
         }
     }
@@ -127,16 +203,16 @@ public class GUI implements ActionListener {
             case EXPERT -> controls.setPreferredSize(new Dimension(745,60));
         }
         controls.setLayout(new BorderLayout());
-        JTextField flagsLeft = new JTextField(3);
+        this.flagsLeft = new JTextField(3);
         flagsLeft.setFont(new Font("vt100",Font.PLAIN,27));
         flagsLeft.setHorizontalAlignment(SwingConstants.RIGHT);
         flagsLeft.setBackground(new Color(43, 13, 13));
         flagsLeft.setForeground(Color.red);
         flagsLeft.setText(String.valueOf(numOfFlags));
-        JButton resetButton = new JButton(smiley);
+        this.resetButton = new JButton(smiley);
         resetButton.setFocusPainted(false);
         resetButton.setPreferredSize(new Dimension(50,50));
-        JTextField timerDisplay = new JTextField(3);
+        this.timerDisplay = new JTextField(3);
         timerDisplay.setFont(new Font("vt100",Font.PLAIN,27));
         timerDisplay.setHorizontalAlignment(SwingConstants.RIGHT);
         timerDisplay.setBackground(new Color(43, 13, 13));
@@ -177,10 +253,25 @@ public class GUI implements ActionListener {
         controls.add(centerControl, BorderLayout.CENTER);
         controls.add(BorderLayout.EAST, timerDisplay);
     }
+        private void setNumbers() {
+        this.numbers = new ImageIcon[9];
+
+        this.numbers[0] = new ImageIcon("src/main/resources/numbers/0.png");
+        this.numbers[1] = new ImageIcon("src/main/resources/numbers/1.png");
+        this.numbers[2] = new ImageIcon("src/main/resources/numbers/2.png");
+        this.numbers[3] = new ImageIcon("src/main/resources/numbers/3.png");
+        this.numbers[4] = new ImageIcon("src/main/resources/numbers/4.png");
+        this.numbers[5] = new ImageIcon("src/main/resources/numbers/5.png");
+        this.numbers[6] = new ImageIcon("src/main/resources/numbers/6.png");
+        this.numbers[7] = new ImageIcon("src/main/resources/numbers/7.png");
+        this.numbers[8] = new ImageIcon("src/main/resources/numbers/8.png");
+    }
     public static class Cell extends JButton {
         private final Point cell;
+        private boolean flagged;
         Cell(){
             this.cell = new Point();
+            this.flagged = false;
             this.setPreferredSize(new Dimension(25,25));
             setBackground(Color.LIGHT_GRAY);
             setBorder(new BevelBorder(BevelBorder.RAISED));
@@ -188,11 +279,30 @@ public class GUI implements ActionListener {
         }
         Cell(int x, int y){
             this.cell = new Point(x,y);
+            this.flagged = false;
             this.setPreferredSize(new Dimension(25,25));
-            setBackground(Color.LIGHT_GRAY);
+//            this.setBackground(Color.LIGHT_GRAY);
 //            setBorder(new BevelBorder(BevelBorder.RAISED));
             this.setFocusPainted(false);
             this.setOpaque(true);
+            this.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    Cell targetCell = new Cell();
+                    Object obj = e.getSource();
+                    if (obj instanceof Cell) {
+                        targetCell = (Cell)obj;
+                    }
+                    int x = targetCell.getCellX();
+                    int y = targetCell.getCellY();
+                    if(e.getButton() == MouseEvent.BUTTON3){
+                        Minesweeper.GameEngine.handleClick(y,x,MouseEvent.BUTTON3);
+                    } else {
+                        Minesweeper.GameEngine.handleClick(y,x,MouseEvent.BUTTON1);
+                    }
+
+                }
+            });
         }
 
         public int getCellX() {
@@ -200,6 +310,13 @@ public class GUI implements ActionListener {
         }
         public int getCellY() {
             return (int) cell.getY();
+        }
+
+        public void setFlagged(boolean flagged) {
+            this.flagged = flagged;
+        }
+        public boolean getFlagged(){
+            return this.flagged;
         }
 
         public void setLocation(int x, int y) {

@@ -3,17 +3,19 @@ import java.util.Random;
 public class Board{
     private Difficulty difficulty;
     private int mines;
+    private int totalCells;
+    private int revealed;
     private Cell[][] board;
-    private boolean revealed = false;
-    private int numOfMines;
     private int maxX;
     private int maxY;
 
-    Board(String difficulty){
+    Board(Difficulty difficulty){
         switch (difficulty){
-            case "EASY" -> {
-                this.difficulty = Difficulty.EASY;
+            case EASY -> {
+                this.difficulty = difficulty;
                 this.mines = 10;
+                this.revealed=0;
+                this.totalCells = 81;
                 this.maxX = 8;
                 this.maxY = 8;
                 this.board = new Cell[9][9];
@@ -21,9 +23,11 @@ public class Board{
                 placeMines();
                 setCellValues(9,9);
             }
-            case "INTERMEDIATE" -> {
-                this.difficulty = Difficulty.INTERMEDIATE;
+            case INTERMEDIATE -> {
+                this.difficulty = difficulty;
                 this.mines = 40;
+                this.revealed = 0;
+                this.totalCells = 256;
                 this.maxX = 15;
                 this.maxY = 15;
                 this.board = new Cell[16][16];
@@ -31,9 +35,11 @@ public class Board{
                 placeMines();
                 setCellValues(16,16);
             }
-            case "EXPERT" -> {
-                this.difficulty = Difficulty.EXPERT;
+            case EXPERT -> {
+                this.difficulty = difficulty;
                 this.mines = 99;
+                this.revealed = 0;
+                this.totalCells = 480;
                 this.maxX = 29;
                 this.maxY = 15;
                 this.board = new Cell[16][30];
@@ -65,6 +71,9 @@ public class Board{
         }
 
         return count;
+    }
+    public boolean isWin(){
+        return (revealed == totalCells - mines);
     }
     public boolean isMine(int y, int x){
         return this.board[y][x].isMine();
@@ -99,11 +108,9 @@ public class Board{
     public int getValue(int y, int x){
         return this.board[y][x].getValue();
     }
-    public void revealCell(Cell cell){
-        cell.setRevealed(true);
-    }
-    public void revealAll(){
-        this.revealed = true;
+    public void revealCell(int y, int x){
+        revealed++;
+        this.board[y][x].setRevealed(true);
     }
     private static int randNum(int maxVal){
         Random random = new Random();
