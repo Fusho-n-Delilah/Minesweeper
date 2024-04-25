@@ -180,7 +180,7 @@ public class GUI implements ActionListener {
         this.menu = new JMenuBar();
         ArrayList<JMenuItem> menuItems = new ArrayList<>();
         game.setJMenuBar(this.menu);
-        JMenu difficultyOption = new JMenu("Difficulty");
+        JMenu difficultyOption = new JMenu("Level");
 
         //easy
         JMenuItem easy = new JMenuItem("Easy");
