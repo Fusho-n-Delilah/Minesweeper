@@ -65,9 +65,18 @@ public class Minesweeper {
         public static void handleClick(String control){
             switch (control){
                 case "RESET" -> resetGame(difficulty);
-                case "EASY" -> resetGame(Difficulty.EASY);
-                case "INTERMEDIATE" -> resetGame(Difficulty.INTERMEDIATE);
-                case "EXPERT" -> resetGame(Difficulty.EXPERT);
+                case "EASY" -> {
+                    difficulty = Difficulty.EASY;
+                    resetGame(Difficulty.EASY);
+                }
+                case "INTERMEDIATE" -> {
+                    difficulty = Difficulty.INTERMEDIATE;
+                    resetGame(Difficulty.INTERMEDIATE);
+                }
+                case "EXPERT" -> {
+                    difficulty = Difficulty.EXPERT;
+                    resetGame(Difficulty.EXPERT);
+                }
             }
 
         }
@@ -75,7 +84,7 @@ public class Minesweeper {
 
 
         public static void handleClick(int y, int x, int clickType){
-            if(clickType == MouseEvent.BUTTON3 && viewModel.getGameState().equals("RUNNING")){
+            if(clickType == MouseEvent.BUTTON3 && viewModel.getGameState().equals("RUNNING") && !viewModel.isRevealed(y,x)){
                 flagCell(y,x);
             } else {
                 if(gameBoard.isRevealed(y,x)) return;

@@ -5,11 +5,13 @@ import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.metal.MetalButtonUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class GUI implements ActionListener {
     private Cell[][] cells;
     private JPanel board;
     private JPanel controls;
+    private JMenuBar menu;
     private JFrame game;
     private Difficulty difficulty;
     private int numOfCells;
@@ -74,24 +76,27 @@ public class GUI implements ActionListener {
 
         //create and initialize components
         setNumbers();
+        initializeMenu();
         initializeControls();
         initializeBoard();
         initializeCells();
 
         //pack components in Frame and finish Initializing Frame
-        game.add(controls);
+
+        game.add(this.controls);
         game.add(this.board);
         game.pack();
         game.setLocationRelativeTo(null);
         game.setLayout(new FlowLayout());
         switch (difficulty){
-            case EASY -> game.setSize(235,325);
-            case INTERMEDIATE -> game.setSize(405,500);
-            case EXPERT -> game.setSize(770,505);
+            case EASY -> game.setSize(235,350);
+            case INTERMEDIATE -> game.setSize(405,525);
+            case EXPERT -> game.setSize(765,530);
         }
         game.setResizable(false);
         game.setVisible(true);
     }
+
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -99,6 +104,8 @@ public class GUI implements ActionListener {
             Minesweeper.GameEngine.handleClick("RESET");
             this.game.dispose();
         }
+        //Action Listeners for controls
+
     }
     public void displayBoard(ViewBoard viewModel){
         if(viewModel.getGameState().equals("WON")){
@@ -168,6 +175,39 @@ public class GUI implements ActionListener {
         }
         this.board.setBackground(Color.LIGHT_GRAY);
         this.board.setBorder(new BevelBorder(BevelBorder.RAISED));
+    }
+    private void initializeMenu() {
+        this.menu = new JMenuBar();
+        ArrayList<JMenuItem> menuItems = new ArrayList<>();
+        game.setJMenuBar(this.menu);
+        JMenu difficultyOption = new JMenu("Difficulty");
+
+        //easy
+        JMenuItem easy = new JMenuItem("Easy");
+        easy.addActionListener(e -> {
+            Minesweeper.GameEngine.handleClick("EASY");
+            this.game.dispose();
+        });
+        menuItems.add(easy);
+        //intermediate
+        JMenuItem intermediate = new JMenuItem("Intermediate");
+        intermediate.addActionListener(e -> {
+            Minesweeper.GameEngine.handleClick("INTERMEDIATE");
+            this.game.dispose();
+        });
+        //expert
+        menuItems.add(intermediate);
+        JMenuItem expert = new JMenuItem("Expert");
+        expert.addActionListener(e -> {
+            Minesweeper.GameEngine.handleClick("EXPERT");
+            this.game.dispose();
+        });
+        menuItems.add(expert);
+
+        menuItems.forEach(difficultyOption::add);
+        menu.add(difficultyOption);
+
+        this.menu.setPreferredSize(new Dimension(100,25));
     }
     private void initializeCells(){
         int rows, cols;
