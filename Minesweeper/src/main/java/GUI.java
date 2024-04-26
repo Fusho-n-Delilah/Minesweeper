@@ -14,6 +14,8 @@ public class GUI implements ActionListener {
     private JMenuBar menu;
     private JFrame game;
     private Difficulty difficulty;
+    private static Timer timer;
+    private static int time;
     private int numOfCells;
     private int numOfFlags;
     private int maxX, maxY;
@@ -69,6 +71,8 @@ public class GUI implements ActionListener {
                 this.cells = new Cell[16][30];
             }
         }
+
+
         //initialize Frame
         this.game = new JFrame();
         game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -80,6 +84,7 @@ public class GUI implements ActionListener {
         initializeControls();
         initializeBoard();
         initializeCells();
+        initializeTimer();
 
         //pack components in Frame and finish Initializing Frame
 
@@ -100,6 +105,7 @@ public class GUI implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+
         if (e.getSource().equals(resetButton)){
             Minesweeper.GameEngine.handleClick("RESET");
             this.game.dispose();
@@ -110,8 +116,10 @@ public class GUI implements ActionListener {
     public void displayBoard(ViewBoard viewModel){
         if(viewModel.getGameState().equals("WON")){
             this.resetButton.setIcon(smiley_cool);
+            timer.stop();
         } else if (viewModel.getGameState().equals("LOST")){
             this.resetButton.setIcon(smiley_dead);
+            timer.stop();
         }
         int flags = 0;
         for(int i = 0; i<maxY; i++){
@@ -148,6 +156,15 @@ public class GUI implements ActionListener {
         }
         flagsLeft.setText(String.valueOf((this.numOfFlags-flags)));
 
+    }
+    private void initializeTimer(){
+        this.timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                time++;
+                timerDisplay.setText(String.valueOf(time));
+            }
+        });
     }
 
 //    private void displayLose(ViewBoard viewModel) {
@@ -258,12 +275,15 @@ public class GUI implements ActionListener {
         resetButton.setFocusPainted(false);
         resetButton.setPreferredSize(new Dimension(50,50));
         resetButton.addActionListener(this);
+
+        //timer
+        this.time = 0;
         this.timerDisplay = new JTextField(3);
         timerDisplay.setFont(new Font("vt100",Font.PLAIN,27));
         timerDisplay.setHorizontalAlignment(SwingConstants.RIGHT);
         timerDisplay.setBackground(new Color(43, 13, 13));
         timerDisplay.setForeground(Color.red);
-        timerDisplay.setText("0");
+        timerDisplay.setText(String.valueOf(this.time));
 
         JPanel centerControl = new JPanel(new GridLayout(1,7));
         if(difficulty != Difficulty.EASY) {
@@ -341,6 +361,10 @@ public class GUI implements ActionListener {
                     }
                     int x = targetCell.getCellX();
                     int y = targetCell.getCellY();
+
+                    if(!timer.isRunning() && GUI.time==0){
+                        timer.start();
+                    }
                     if(e.getButton() == MouseEvent.BUTTON3){
                         Minesweeper.GameEngine.handleClick(y,x,MouseEvent.BUTTON3);
                     } else {

@@ -5,23 +5,6 @@ import java.util.ArrayList;
 public class Minesweeper {
     public static void main (String... args){
         new GameEngine(Difficulty.EASY);
-
-        //tests
-//        int count = 0;
-//        int mines = 0;
-//        for(int i = 0; i < 9; i++) {
-//            for (int j = 0; j < 9; j++) {
-//                if(game.isMine(i,j)) {
-//                    System.out.println(game.isMine(i, j));
-//                    mines++;
-//                } else {
-//                    System.out.println(game.getValue(i,j));
-//                }
-//                count++;
-//            }
-//        }
-//        System.out.println(count);
-//        System.out.println(mines);
     }
 
     public static class GameEngine {
@@ -34,9 +17,12 @@ public class Minesweeper {
                             maxY,
                             rows,
                             cols;
+        private static boolean disabled;
 
         GameEngine(Difficulty difficulty){
             GameEngine.difficulty = difficulty;
+            this.disabled = false;
+
             switch (difficulty){
                 case EASY -> {
                     maxX = 8;
@@ -80,14 +66,13 @@ public class Minesweeper {
             }
 
         }
-
-
-
         public static void handleClick(int y, int x, int clickType){
             if(clickType == MouseEvent.BUTTON3 && viewModel.getGameState().equals("RUNNING") && !viewModel.isRevealed(y,x)){
                 flagCell(y,x);
             } else {
                 if(gameBoard.isRevealed(y,x)) return;
+                if(disabled) return;
+
                 gameBoard.revealCell(y, x);
 
                 if(gameBoard.isWin()){
@@ -152,11 +137,14 @@ public class Minesweeper {
         }
         private static void setWin(){
             viewModel.setGameState("WON");
+            disabled = true;
             //reveal all cells except flagged cells, flag all mines, and set the value of all cells
+
             view.displayBoard(viewModel);
         }
         private static void setLose(){
             viewModel.setGameState("LOST");
+            disabled = true;
             //reveal all cells, unflag all cells, and set value of all cells "M" for the mines
 
             for(int i = 0; i < rows; i++){
@@ -178,6 +166,7 @@ public class Minesweeper {
             gameBoard = new Board(difficulty);
             viewModel = new ViewBoard(difficulty);
             view = new GUI(difficulty);
+            disabled = false;
             switch (difficulty){
                 case EASY -> {
                     maxX = 8;
