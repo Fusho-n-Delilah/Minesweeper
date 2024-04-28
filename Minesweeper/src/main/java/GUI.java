@@ -365,6 +365,11 @@ public class GUI implements ActionListener {
                     if(!timer.isRunning() && GUI.time==0){
                         timer.start();
                     }
+
+                    if(e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2 && !targetCell.isEnabled()){
+                        Minesweeper.GameEngine.clearAdjacent(y,x);
+                    }
+
                     if(e.getButton() == MouseEvent.BUTTON3){
                         Minesweeper.GameEngine.handleClick(y,x,MouseEvent.BUTTON3);
                     } else {

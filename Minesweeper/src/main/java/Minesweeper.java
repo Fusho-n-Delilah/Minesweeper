@@ -72,6 +72,7 @@ public class Minesweeper {
             } else {
                 if(gameBoard.isRevealed(y,x)) return;
                 if(disabled) return;
+//                if(clickType == MouseEvent.BUTTON1 && clickCount == 2 && viewModel.isRevealed(y,x)) clearAdjacent(y,x);
 
                 gameBoard.revealCell(y, x);
 
@@ -103,6 +104,39 @@ public class Minesweeper {
         private static void flagCell(int y, int x){
             viewModel.setFlagged(y, x, !viewModel.isFlagged(y, x));
         }
+        public static void clearAdjacent(int y, int x){
+            if(disabled) return;
+
+            for(int i = y-1; i <= y+1; i++) {
+                for (int j = x - 1; j <= x + 1; j++) {
+                    if((j<0 || j > maxX)||(i<0 || i > maxY)) continue;
+                    if(i==y && j==x) continue;
+                    if(viewModel.isFlagged(i,j)) continue;
+
+
+                    if(gameBoard.getValue(i,j) == 0 && !viewModel.isRevealed(i,j)){
+                        viewModel.setRevealed(i, j, true);
+                        if (!gameBoard.isRevealed(i,j)) gameBoard.revealCell(i,j);
+                        clearBlankCells(i,j);
+                        System.out.println(gameBoard.getRevealed());
+                    }
+                    else if (!viewModel.isRevealed(i,j)) {
+                        if(gameBoard.isMine(i,j) && !viewModel.isFlagged(i,j)) setLose();
+                        else {
+                            int value = gameBoard.getValue(i, j);
+                            if (!gameBoard.isRevealed(i,j)) gameBoard.revealCell(i,j);
+                            viewModel.setValue(i, j, String.valueOf(value));
+                            viewModel.setRevealed(i, j, true);
+                        }
+                    }
+                    System.out.println(gameBoard.getRevealed());
+                }
+            }
+            if(gameBoard.isWin()){
+                setWin();
+            }
+            view.displayBoard(viewModel);
+        }
         private static void clearBlankCells(int y, int x){
             //set the cell as revealed on the viewModel and on the data model
             //reveal all adjacent cells and the next immediately adjacent number
@@ -114,14 +148,15 @@ public class Minesweeper {
                     try{
                         if((j<0 || j > maxX)||(i<0 || i > maxY)) continue;
                         if(i==y && j==x) continue;
+                        if(gameBoard.isRevealed(i,j)) continue;
 
                         if(gameBoard.getValue(i,j) == 0 && !viewModel.isRevealed(i,j)){
                             blankCells.add(new Point(j,i));
                             blankFound = true;
-                            gameBoard.revealCell(i,j);
+//                            if(!gameBoard.isRevealed(i,j)) gameBoard.revealCell(i,j);
                         }
 
-                        if(!gameBoard.isRevealed(i,j)) gameBoard.revealCell(i,j);
+                        gameBoard.revealCell(i,j);
                         viewModel.setRevealed(i, j, true);
                         if(gameBoard.getValue(i,j)>0) viewModel.setValue(i,j,String.valueOf(gameBoard.getValue(i,j)));
 

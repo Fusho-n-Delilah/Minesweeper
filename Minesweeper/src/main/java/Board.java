@@ -109,8 +109,10 @@ public class Board{
         return this.board[y][x].getValue();
     }
     public void revealCell(int y, int x){
-        revealed++;
-        this.board[y][x].setRevealed(true);
+        if(!this.board[y][x].isRevealed()){
+            revealed++;
+            this.board[y][x].setRevealed(true);
+        }
     }
     public boolean isRevealed(int y, int x){
         return this.board[y][x].isRevealed();
